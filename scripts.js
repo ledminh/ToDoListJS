@@ -60,6 +60,7 @@ function createDialog() {
         container.appendChild(contentDiv);
 
         input = createInput();
+        input.addEventListener('keyup', ({key}) => (key == 'Enter')? inputEnterDetectedHandle(): false);
         
         const panel = document.createElement('div');
         panel.classList.add('panel');
@@ -79,13 +80,20 @@ function createDialog() {
         container.style.display = "none";
     }
 
-    function addButtonOnClick() {
+    function add() {
         addHandle(input.value);
 
         input.value = "";
 
+        
+
         close();
+
     }
+
+    const addButtonOnClick = add;
+
+    const inputEnterDetectedHandle = add;
 
     function cancelButtonOnClick() {
         input.value = "";
@@ -100,6 +108,8 @@ function createDialog() {
     function open(inputPlaceholder) {
         input.placeholder = inputPlaceholder;
         container.style.display = "flex";
+
+        input.focus(); 
     
     }
 
@@ -132,9 +142,25 @@ function createDialog() {
 /**************************************
  * TASK
  */
-function createTask(taskName) {
+function createTask(taskName, taskContainer, finishDeleteTaskHandle) {
     let container = null, deleteTaskButton = null;
     
+
+
+
+
+
+    /**********************************
+     * Private functions
+     */
+    function deleteTaskOnClick() {
+        taskContainer.removeChild(container);
+
+        finishDeleteTaskHandle(taskName);
+    }
+
+
+
     function init() {
         container = document.createElement('li');
         container.innerText = taskName;
@@ -142,7 +168,7 @@ function createTask(taskName) {
         deleteTaskButton = document.createElement('button');
         deleteTaskButton.innerText = "DELETE";
         
-        //TODO: deleteTaskButton.addEventListener('click', deleteTask);
+        deleteTaskButton.addEventListener('click', deleteTaskOnClick);
 
         container.appendChild(deleteTaskButton);
     }
@@ -156,17 +182,17 @@ function createTask(taskName) {
 
     /**************************************/
     init();
- 
+
     return {getElement};
 }
 
 /**************************************
  * LIST
  */
-function createList(listName, Dialog) {
+function createList(listName, Dialog, listContainer, finishDeleteList) {
     let container = null, headerSection=null, deleteListBtn = null, listTitle = null, listDate=null, bodySection = null, ulElem = null, functionPanel = null, addTaskButton = null;
 
-    const tasks = [];
+    let tasks = [];
 
     function createElement(elemName, className, innerText) {
         const elem = document.createElement(elemName);
@@ -176,6 +202,11 @@ function createList(listName, Dialog) {
         elem.innerText = innerText? innerText : "";
 
         return elem;
+    }
+
+    function deleteListBtnOnClick() {
+        listContainer.removeChild(container);
+        finishDeleteList(listName);
     }
 
     function setUpElements() {
@@ -188,6 +219,8 @@ function createList(listName, Dialog) {
         listDate = createElement('h4', null, `Date: ${(new Date()).toLocaleDateString()}`);
 
         headerSection.appendChild(deleteListBtn);
+        deleteListBtn.addEventListener('click', deleteListBtnOnClick);
+
         headerSection.appendChild(listTitle);
         headerSection.appendChild(listDate);
 
@@ -211,9 +244,14 @@ function createList(listName, Dialog) {
         container.appendChild(functionPanel);
     }
 
+    function finishDeleteTaskHandle(taskName) {
+        tasks = tasks.filter((t) => t != taskName);
+    }
+
+
     function addTask(taskName) {
         if(taskName != ''){
-            const newTask = createTask(taskName);
+            const newTask = createTask(taskName, ulElem, finishDeleteTaskHandle);
             tasks.push(newTask);
             ulElem.appendChild(newTask.getElement());
         }
@@ -236,12 +274,13 @@ function createList(listName, Dialog) {
      * Public functions
      */
     const getElement = () => container;
+    const getName = () => listName;
 
 
     /**************************************/
     init();
 
-    return {getElement};
+    return {getElement, getName};
 }
 
 
@@ -250,7 +289,8 @@ function createList(listName, Dialog) {
  */
 function Engine(container, addButton, exportButton){
     let Dialog = null;
-    const lists = [];
+    let lists = [];
+    let Intro = null;
 
 
 
@@ -264,22 +304,58 @@ function Engine(container, addButton, exportButton){
         Dialog.open("Enter list name here and click ADD ...");
     }
 
+    function finishDeleteList(listName) {
+        lists = lists.filter(l => l.getName() != listName);
+
+        if(lists.length == 0){
+            container.appendChild(Intro);
+            container.style.border = "none";
+        }
+    }
+
     function addNewList(listName) {
         if(listName != ""){
-            const newList = createList(listName, Dialog);
+            const newList = createList(listName, Dialog, container, finishDeleteList);
             lists.push(newList);
+            
+            if(lists.length == 1){
+                clearScreen();
+            }
+
             container.appendChild(newList.getElement());
+
         }
+    }
+
+    function clearScreen() {
+        if(lists.length == 1) {
+            container.removeChild(Intro);
+            container.style.border = "4px solid rgb(26, 26, 36)";
+        }
+    }
+
+    function createIntro(){
+        const elem = document.createElement('span');
+
+        elem.classList.add('intro');
+
+        elem.innerText = 'Click "ADD LIST" button below to add a new list';
+
+        return elem;
     }
 
     /******************************************
      * PUBLIC FUNCTIONS
      */
     function run() {
+        Intro = createIntro();
+        container.appendChild(Intro);
+
         Dialog = createDialog();
         container.appendChild(Dialog.getElement());
 
         addButton.addEventListener('click', addButtonOnClick);
+        
     }
 
 

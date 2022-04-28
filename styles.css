@@ -141,13 +141,19 @@ main {
     margin-top: 7.5rem;
     margin-bottom: 7rem;
 
-    border: 4px solid rgb(26, 26, 36);
     padding: 1rem;
 
     display: flex;
     flex-flow: row wrap;
     justify-content: space-between;
     align-content: space-between;
+}
+
+main .intro {
+    font-family: monospace;
+    font-size: 3rem;
+    text-align: center;
+    color:rgb(145, 145, 145);
 }
 
 /******************
@@ -190,10 +196,10 @@ article.list section.body li {
 article.list section.body li button,
 article.list section.header button {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
     opacity: .7;
     font-size: 1.8rem;
     font-weight: bold;
